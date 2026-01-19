@@ -1,20 +1,20 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-dotenv.config();
+import { config } from '../config/env.js';
 
 let transporter;
 
 const createTransporter = async () => {
-    if (process.env.SMTP_HOST) {
+    if (config.smtp.host) {
         // Real SMTP
         transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
+            host: config.smtp.host,
+            port: config.smtp.port,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: config.smtp.user,
+                pass: config.smtp.pass,
             },
         });
     } else {

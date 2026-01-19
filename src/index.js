@@ -9,17 +9,17 @@ import ticketRoutes from './routes/ticketRoutes.js';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 
-dotenv.config();
-
+import { config } from './config/env.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-dotenv.config();
+// dotenv config is now handled in config/env.js
+// dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 const start = async () => {
     const app = express();

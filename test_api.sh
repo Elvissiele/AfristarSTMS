@@ -9,7 +9,10 @@ echo $REGISTER_RES
 echo "\n2. Logging in..."
 LOGIN_RES=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password123"}')
 echo $LOGIN_RES
-TOKEN=$(echo $LOGIN_RES | grep -o '"token":"[^"]*' | awk -F':' '{print $2}' | tr -d '"')
+
+# Actually with standardized response it's inside data.token.
+# Let's use jq properly
+TOKEN=$(echo $LOGIN_RES | jq -r '.data.token')
 
 if [ -z "$TOKEN" ]; then
     echo "Login failed, no token obtained."

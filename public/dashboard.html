@@ -7,7 +7,7 @@
     <title>Dashboard - Support Ticket System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -28,13 +28,7 @@
         <div class="max-w-7xl mx-auto">
 
             <!-- Stats & Filters -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Chart -->
-                <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <h2 class="font-semibold text-gray-700 mb-2">Ticket Status Distribution</h2>
-                    <canvas id="statusChart" class="w-full h-48"></canvas>
-                </div>
-
+            <div class="mb-6">
                 <!-- Filters -->
                 <div class="flex flex-col justify-center space-y-4 bg-white p-4 rounded-lg shadow-sm">
                     <div class="flex items-center justify-between">
@@ -216,39 +210,10 @@
         statusFilter.addEventListener('change', () => { currentPage = 1; fetchTickets(); });
 
         async function initDashboard() {
-            await fetchStats();
             await fetchTickets();
         }
 
-        async function fetchStats() {
-            try {
-                const res = await fetch('/api/v1/tickets/stats', {
-                    headers: { 'Authorization': `Bearer \${token}` }
-                });
-                const stats = await res.json();
-                renderChart(stats);
-            } catch (e) { console.error(e); }
-        }
 
-        function renderChart(data) {
-            const ctx = document.getElementById('statusChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Open', 'In Progress', 'Resolved', 'Closed'],
-                    datasets: [{
-                        data: [
-                            data.OPEN || 0,
-                            data.IN_PROGRESS || 0,
-                            data.RESOLVED || 0,
-                            data.CLOSED || 0
-                        ],
-                        backgroundColor: ['#3b82f6', '#eab308', '#22c55e', '#6b7280']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
 
         function changePage(delta) {
             const newPage = currentPage + delta;
@@ -267,22 +232,22 @@
             const search = searchInput.value;
 
             try {
-                let url = `/api/v1/tickets?page=\${currentPage}&limit=5`;
-                if (status !== 'ALL') url += `&status=\${status}`;
-                if (search) url += `&search=\${search}`;
+                let url = `/api/v1/tickets?page=${currentPage}&limit=5`;
+                if (status !== 'ALL') url += `&status=${status}`;
+                if (search) url += `&search=${search}`;
 
                 const res = await fetch(url, {
-                    headers: { 'Authorization': `Bearer \${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('Failed to fetch');
-                const data = await res.json();
+                const json = await res.json();
 
-                allTickets = data.data;
-                currentPage = data.meta.page;
-                lastPage = data.meta.last_page || 1;
+                allTickets = json.data;
+                currentPage = json.meta.page;
+                lastPage = json.meta.last_page || 1;
 
                 renderTickets();
-                updatePaginationControls(data.meta.total);
+                updatePaginationControls(json.meta.total);
             } catch (err) {
                 console.error(err);
                 loadingDiv.innerText = 'Error loading tickets.';
@@ -313,14 +278,14 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50 border-b cursor-pointer';
                 tr.innerHTML = `
-                    <td class="p-4 font-mono text-sm text-gray-500">#\${t.id}</td>
-                    <td class="p-4 font-medium text-gray-800">\${t.title}</td>
-                    <td class="p-4 text-gray-600">\${t.author.email}</td>
-                    <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold \${getStatusColor(t.status)}">\${t.status}</span></td>
-                    <td class="p-4 text-sm text-gray-600">\${t.priority}</td>
-                    <td class="p-4 text-sm text-gray-500">\${t.assignedTo ? t.assignedTo.name || t.assignedTo.email : '-'}</td>
+                    <td class="p-4 font-mono text-sm text-gray-500">#${t.id}</td>
+                    <td class="p-4 font-medium text-gray-800">${t.title}</td>
+                    <td class="p-4 text-gray-600">${t.author.email}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${getStatusColor(t.status)}">${t.status}</span></td>
+                    <td class="p-4 text-sm text-gray-600">${t.priority}</td>
+                    <td class="p-4 text-sm text-gray-500">${t.assignedTo ? t.assignedTo.name || t.assignedTo.email : '-'}</td>
                     <td class="p-4">
-                        <button class="text-blue-600 hover:underline text-sm font-medium" onclick="openTicket(\${t.id})">View</button>
+                        <button class="text-blue-600 hover:underline text-sm font-medium" onclick="openTicket(${t.id})">View</button>
                     </td>
                 `;
                 tr.addEventListener('click', (e) => {
@@ -346,10 +311,11 @@
             currentTicketId = id;
             // Fetch Full Details
             try {
-                const res = await fetch(`/api/v1/tickets/\${id}`, {
-                    headers: { 'Authorization': `Bearer \${token}` }
+                const res = await fetch(`/api/v1/tickets/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const t = await res.json();
+                const json = await res.json();
+                const t = json.data;
 
                 // Populate Modal
                 document.getElementById('modalTitle').innerText = t.title;
@@ -379,16 +345,16 @@
 
             comments.forEach(c => {
                 const div = document.createElement('div');
-                div.className = `p-4 rounded-lg \${c.isInternal ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100 shadow-sm'}`;
+                div.className = `p-4 rounded-lg ${c.isInternal ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100 shadow-sm'}`;
 
                 const internalBadge = c.isInternal ? '<span class="bg-yellow-200 text-yellow-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2">Internal</span>' : '';
 
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-semibold text-sm text-gray-700">\${c.author.name || 'User'} \${internalBadge}</span>
-                        <span class="text-xs text-gray-400">\${new Date(c.createdAt).toLocaleString()}</span>
+                        <span class="font-semibold text-sm text-gray-700">${c.author.name || 'User'} ${internalBadge}</span>
+                        <span class="text-xs text-gray-400">${new Date(c.createdAt).toLocaleString()}</span>
                     </div>
-                    <p class="text-gray-600 text-sm">\${c.content}</p>
+                    <p class="text-gray-600 text-sm">${c.content}</p>
                 `;
                 list.appendChild(div);
             });
@@ -409,10 +375,10 @@
             const isInternal = document.getElementById('commentInternal').checked;
 
             try {
-                const res = await fetch(`/api/v1/tickets/\${currentTicketId}/comments`, {
+                const res = await fetch(`/api/v1/tickets/${currentTicketId}/comments`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer \${token}`,
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ content, isInternal })
@@ -439,10 +405,10 @@
             const priority = document.getElementById('modalPriority').value;
 
             try {
-                const res = await fetch(`/api/v1/tickets/\${currentTicketId}`, {
+                const res = await fetch(`/api/v1/tickets/${currentTicketId}`, {
                     method: 'PATCH',
                     headers: {
-                        'Authorization': `Bearer \${token}`,
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ status, priority })

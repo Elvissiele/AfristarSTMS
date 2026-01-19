@@ -24,10 +24,10 @@ export const createTicket = async (req, res) => {
             });
         });
 
-        res.status(201).json(ticket);
+        res.status(201).json({ status: 'success', data: ticket });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error creating ticket' });
+        res.status(500).json({ status: 'error', message: 'Error creating ticket' });
     }
 };
 
@@ -75,6 +75,7 @@ export const getTickets = async (req, res) => {
         const total = await prisma.ticket.count({ where });
 
         res.json({
+            status: 'success',
             data: tickets,
             meta: {
                 total,
@@ -84,7 +85,7 @@ export const getTickets = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching tickets' });
+        res.status(500).json({ status: 'error', message: 'Error fetching tickets' });
     }
 };
 
@@ -101,10 +102,10 @@ export const getTicketStats = async (req, res) => {
             return acc;
         }, {});
 
-        res.json(formatted);
+        res.json({ status: 'success', data: formatted });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching stats' });
+        res.status(500).json({ status: 'error', message: 'Error fetching stats' });
     }
 };
 
@@ -115,7 +116,7 @@ export const updateTicket = async (req, res) => {
 
         // Verify existence
         const ticket = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
-        if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+        if (!ticket) return res.status(404).json({ status: 'error', message: 'Ticket not found' });
 
         const updatedTicket = await prisma.ticket.update({
             where: { id: parseInt(id) },
@@ -125,7 +126,7 @@ export const updateTicket = async (req, res) => {
                 assignedToId: assignedToId ? parseInt(assignedToId) : undefined,
             },
         });
-        res.json(updatedTicket);
+        res.json({ status: 'success', data: updatedTicket });
 
         // Send Email to Customer if Status Changed
         if (status && status !== ticket.status) {
@@ -148,7 +149,7 @@ export const updateTicket = async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating ticket' });
+        res.status(500).json({ status: 'error', message: 'Error updating ticket' });
     }
 };
 
@@ -158,11 +159,11 @@ export const addComment = async (req, res) => {
         const { content, isInternal } = req.body;
 
         const ticket = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
-        if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+        if (!ticket) return res.status(404).json({ status: 'error', message: 'Ticket not found' });
 
         // RBAC Check
         if (req.user.role === 'CUSTOMER' && ticket.authorId !== req.user.id) {
-            return res.status(403).json({ message: 'Forbidden' });
+            return res.status(403).json({ status: 'error', message: 'Forbidden' });
         }
 
         const comment = await prisma.comment.create({
@@ -173,10 +174,10 @@ export const addComment = async (req, res) => {
                 authorId: req.user.id,
             },
         });
-        res.status(201).json(comment);
+        res.status(201).json({ status: 'success', data: comment });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error adding comment' });
+        res.status(500).json({ status: 'error', message: 'Error adding comment' });
     }
 };
 
@@ -192,20 +193,20 @@ export const getTicketDetails = async (req, res) => {
             }
         });
 
-        if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+        if (!ticket) return res.status(404).json({ status: 'error', message: 'Ticket not found' });
 
         // Access control
         if (req.user.role === 'CUSTOMER') {
             if (ticket.authorId !== req.user.id) {
-                return res.status(403).json({ message: 'Forbidden' });
+                return res.status(403).json({ status: 'error', message: 'Forbidden' });
             }
             // Filter out internal comments for customers
             ticket.comments = ticket.comments.filter(comment => !comment.isInternal);
         }
 
-        res.json(ticket);
+        res.json({ status: 'success', data: ticket });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching ticket details' });
+        res.status(500).json({ status: 'error', message: 'Error fetching ticket details' });
     }
 }
