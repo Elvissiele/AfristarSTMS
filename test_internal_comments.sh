@@ -9,7 +9,7 @@ echo "1. Registering Users (Admin & Customer)..."
 curl -s -X POST $BASE_URL/auth/register -H "Content-Type: application/json" -d '{"email":"customer_dash@example.com","password":"password123","name":"Dash Customer"}' > /dev/null
 
 echo "2. Logging in..."
-ADMIN_TOKEN=$(curl -s -X POST $BASE_URL/auth/login -H "Content-Type: application/json" -d '{"email":"admin@example.com","password":"admin123"}' | jq -r '.token')
+ADMIN_TOKEN=$(curl -s -X POST $BASE_URL/auth/login -H "Content-Type: application/json" -d '{"email":"john@example.com","password":"SecurePass123"}' | jq -r '.token')
 CUSTOMER_TOKEN=$(curl -s -X POST $BASE_URL/auth/login -H "Content-Type: application/json" -d '{"email":"customer_dash@example.com","password":"password123"}' | jq -r '.token')
 
 if [ "$ADMIN_TOKEN" == "null" ] || [ "$CUSTOMER_TOKEN" == "null" ]; then

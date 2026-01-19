@@ -7,15 +7,15 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function main() {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('SecurePass123', 10);
     const admin = await prisma.user.upsert({
-        where: { email: 'admin@example.com' },
+        where: { email: 'john@example.com' },
         update: {},
         create: {
-            email: 'admin@example.com',
+            email: 'john@example.com',
             name: 'Admin User',
-            password: hashedPassword,
             role: 'ADMIN',
+            password: hashedPassword
         },
     });
     console.log({ admin });

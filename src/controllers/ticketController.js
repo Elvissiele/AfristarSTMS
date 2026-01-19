@@ -11,6 +11,19 @@ export const createTicket = async (req, res) => {
                 authorId: req.user.id,
             },
         });
+
+
+        // Send Email to Admin (Mock Admin Email)
+        // In production, we would fetch all admins or round-robin
+        import('../services/emailService.js').then(({ sendEmail }) => {
+            sendEmail({
+                to: 'admin@example.com',
+                subject: `New Ticket: ${ticket.title} (#${ticket.id})`,
+                text: `A new ticket has been created by a customer.\n\nDescription: ${ticket.description}`,
+                html: `<p>A new ticket has been created.</p><p><b>Title:</b> ${ticket.title}</p><p><b>Description:</b> ${ticket.description}</p>`
+            });
+        });
+
         res.status(201).json(ticket);
     } catch (error) {
         console.error(error);
@@ -21,26 +34,77 @@ export const createTicket = async (req, res) => {
 export const getTickets = async (req, res) => {
     try {
         const { role, id } = req.user;
-        let tickets;
+        const { search, page = 1, limit = 10, status } = req.query;
 
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const where = {};
+
+        // Role-based filtering
         if (role === 'CUSTOMER') {
-            tickets = await prisma.ticket.findMany({
-                where: { authorId: id },
-                include: { author: { select: { name: true, email: true } } },
-            });
-        } else {
-            // AGENT or ADMIN see all
-            tickets = await prisma.ticket.findMany({
-                include: {
-                    author: { select: { name: true, email: true } },
-                    assignedTo: { select: { name: true, email: true } }
-                },
-            });
+            where.authorId = id;
         }
-        res.json(tickets);
+
+        // Status filter
+        if (status && status !== 'ALL') {
+            where.status = status;
+        }
+
+        // Search filter (Title or Author Email)
+        if (search) {
+            where.OR = [
+                { title: { contains: search } }, // Case-insensitive in Postgres, sensitive in SQLite/MySQL usually
+                // { author: { email: { contains: search } } } // Requires relation filtering support
+            ];
+        }
+
+        // Fetch Data
+        const tickets = await prisma.ticket.findMany({
+            where,
+            include: {
+                author: { select: { name: true, email: true } },
+                assignedTo: { select: { name: true, email: true } }
+            },
+            skip,
+            take,
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Count Total for Pagination
+        const total = await prisma.ticket.count({ where });
+
+        res.json({
+            data: tickets,
+            meta: {
+                total,
+                page: parseInt(page),
+                last_page: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching tickets' });
+    }
+};
+
+export const getTicketStats = async (req, res) => {
+    try {
+        const stats = await prisma.ticket.groupBy({
+            by: ['status'],
+            _count: { status: true },
+        });
+
+        // Format: { OPEN: 5, CLOSED: 2, ... }
+        const formatted = stats.reduce((acc, curr) => {
+            acc[curr.status] = curr._count.status;
+            return acc;
+        }, {});
+
+        res.json(formatted);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching stats' });
     }
 };
 
@@ -62,6 +126,26 @@ export const updateTicket = async (req, res) => {
             },
         });
         res.json(updatedTicket);
+
+        // Send Email to Customer if Status Changed
+        if (status && status !== ticket.status) {
+            import('../services/emailService.js').then(async ({ sendEmail }) => {
+                // Fetch author email
+                const fullTicket = await prisma.ticket.findUnique({
+                    where: { id: parseInt(id) },
+                    include: { author: { select: { email: true } } }
+                });
+
+                if (fullTicket && fullTicket.author.email) {
+                    sendEmail({
+                        to: fullTicket.author.email,
+                        subject: `Ticket Update: ${fullTicket.title} (#${fullTicket.id})`,
+                        text: `Your ticket status has been updated to: ${status}`,
+                        html: `<p>Your ticket status has been updated to: <b>${status}</b></p>`
+                    });
+                }
+            });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error updating ticket' });
