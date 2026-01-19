@@ -1,0 +1,69 @@
+To Build a Support Ticket Management system with Restful API backend, rolebased access control and simple admin Interface.
+
+1. Project setup and database design
+2. User Management
+3. Ticket Management
+4. Role based access control
+5. Simple admin Interface
+
+PRoject setup and database design
+- Initialize the project structure using a framework like Node.js/Express or Python/FastAPI.
+- Configure a relational database (e.g., PostgreSQL) with the following schema:
+
+    - **Users**: `id`, `email`, `password_hash`, `role`, `created_at`(Admin, Agent, Customer).
+    - **Tickets**: `id`, `ticket_id`, `subject`, `description`, `status` (Open, In Progress, Resolved, Closed), `priority`, `category`,`reporter_id` (FK), `assignee_id` (FK), `created_at`, `updated_at`.
+    - **Comments**: `id`, `ticket_id` (FK), `user_id` (FK), `content`,`is_internal`, `created_at`.
+- Set up environment variables and database migration tools.
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('Admin', 'Agent', 'Customer')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tickets (
+    id SERIAL PRIMARY KEY,
+    ticket_id VARCHAR(50) UNIQUE NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'In Progress', 'Resolved', 'Closed')),
+    priority VARCHAR(20) NOT NULL CHECK (priority IN ('Low', 'Medium', 'High', 'Urgent')),
+    category VARCHAR(100) NOT NULL,
+    reporter_id INTEGER NOT NULL REFERENCES users(id),
+    assignee_id INTEGER REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    ticket_id INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    content TEXT NOT NULL,
+    is_internal BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE INDEX idx_tickets_status ON tickets(status);
+CREATE INDEX idx_tickets_priority ON tickets(priority);
+CREATE INDEX idx_tickets_reporter_id ON tickets(reporter_id);
+CREATE INDEX idx_tickets_assignee_id ON tickets(assignee_id);
+CREATE INDEX idx_comments_ticket_id ON comments(ticket_id);
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER trg_update_tickets_updated_at
+    BEFORE UPDATE ON tickets
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
