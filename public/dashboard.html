@@ -19,71 +19,115 @@
 
     <!-- Navbar -->
     <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">Support Dashboard</h1>
-        <button id="logoutBtn" class="text-red-600 hover:text-red-800 font-medium">Logout</button>
+        <div class="flex items-center space-x-2">
+            <img src="/images/logo.jpg" alt="Afristar Logo" class="h-10 object-contain">
+            <span class="text-xl font-bold text-gray-800 tracking-tight hidden md:inline">ICT Helpdesk</span>
+        </div>
+        <div class="space-x-4">
+            <button id="usersBtn" onclick="switchView('users')"
+                class="hidden bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-medium">Manage
+                Users</button>
+            <button onclick="document.getElementById('createTicketModal').classList.remove('hidden')"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">New Ticket</button>
+            <button id="logoutBtn" class="text-red-600 hover:text-red-800 font-medium">Logout</button>
+        </div>
     </nav>
 
     <!-- Main Content -->
     <main class="flex-grow p-6">
         <div class="max-w-7xl mx-auto">
 
-            <!-- Stats & Filters -->
-            <div class="mb-6">
-                <!-- Filters -->
-                <div class="flex flex-col justify-center space-y-4 bg-white p-4 rounded-lg shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <label class="font-medium text-gray-700">Filter Status:</label>
-                        <select id="statusFilter"
-                            class="border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="ALL">All Tickets</option>
-                            <option value="OPEN">Open</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="RESOLVED">Resolved</option>
-                            <option value="CLOSED">Closed</option>
-                        </select>
-                    </div>
+            <!-- Tickets View -->
+            <div id="ticketsView">
 
-                    <div class="flex items-center justify-between">
-                        <input type="text" id="searchInput" placeholder="Search title..."
-                            class="w-full border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none mr-2">
-                        <button onclick="fetchTickets()"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Search</button>
+                <!-- Stats & Filters -->
+                <div class="mb-6">
+                    <!-- Filters -->
+                    <div class="flex flex-col justify-center space-y-4 bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <label class="font-medium text-gray-700">Filter Status:</label>
+                            <select id="statusFilter"
+                                class="border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="ALL">All Tickets</option>
+                                <option value="OPEN">Open</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="RESOLVED">Resolved</option>
+                                <option value="CLOSED">Closed</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <input type="text" id="searchInput" placeholder="Search title..."
+                                class="w-full border rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none mr-2">
+                            <button onclick="fetchTickets()"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Search</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- List Header -->
-            <div class="mb-2 flex justify-between items-center text-sm text-gray-500">
-                <span>Showing <span id="ticketCount">0</span> tickets (Page <span id="currentPage">1</span> of <span
-                        id="lastPage">1</span>)</span>
-                <div class="space-x-2">
-                    <button id="prevBtn" onclick="changePage(-1)"
-                        class="px-2 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Prev</button>
-                    <button id="nextBtn" onclick="changePage(1)"
-                        class="px-2 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Next</button>
+                <!-- List Header -->
+                <div class="mb-2 flex justify-between items-center text-sm text-gray-500">
+                    <span>Showing <span id="ticketCount">0</span> tickets (Page <span id="currentPage">1</span> of <span
+                            id="lastPage">1</span>)</span>
+                    <div class="space-x-2">
+                        <button id="prevBtn" onclick="changePage(-1)"
+                            class="px-2 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Prev</button>
+                        <button id="nextBtn" onclick="changePage(1)"
+                            class="px-2 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Next</button>
+                    </div>
+                </div>
+
+                <!-- Ticket List -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-4 font-semibold text-gray-600">ID</th>
+                                <th class="p-4 font-semibold text-gray-600">Title</th>
+                                <th class="p-4 font-semibold text-gray-600">Category</th>
+                                <th class="p-4 font-semibold text-gray-600">Author</th>
+                                <th class="p-4 font-semibold text-gray-600">Status</th>
+                                <th class="p-4 font-semibold text-gray-600">Priority</th>
+                                <th class="p-4 font-semibold text-gray-600">Assignee</th>
+                                <th class="p-4 font-semibold text-gray-600">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketTableBody" class="divide-y divide-gray-100">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                    <div id="loading" class="text-center p-8 text-gray-500">Loading tickets...</div>
                 </div>
             </div>
+        </div>
+        </div> <!-- End Tickets View -->
 
-            <!-- Ticket List -->
+        <!-- Users View -->
+        <div id="usersView" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+                <button onclick="switchView('tickets')" class="text-blue-600 hover:underline">Back to Tickets</button>
+            </div>
+
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b">
                         <tr>
                             <th class="p-4 font-semibold text-gray-600">ID</th>
-                            <th class="p-4 font-semibold text-gray-600">Title</th>
-                            <th class="p-4 font-semibold text-gray-600">Author</th>
-                            <th class="p-4 font-semibold text-gray-600">Status</th>
-                            <th class="p-4 font-semibold text-gray-600">Priority</th>
-                            <th class="p-4 font-semibold text-gray-600">Assignee</th>
-                            <th class="p-4 font-semibold text-gray-600">Action</th>
+                            <th class="p-4 font-semibold text-gray-600">Staff ID</th>
+                            <th class="p-4 font-semibold text-gray-600">Name</th>
+                            <th class="p-4 font-semibold text-gray-600">Email</th>
+                            <th class="p-4 font-semibold text-gray-600">Role</th>
+                            <th class="p-4 font-semibold text-gray-600">Joined</th>
                         </tr>
                     </thead>
-                    <tbody id="ticketTableBody" class="divide-y divide-gray-100">
-                        <!-- Rows injected by JS -->
+                    <tbody id="userTableBody" class="divide-y divide-gray-100">
+                        <!-- Injected -->
                     </tbody>
                 </table>
-                <div id="loading" class="text-center p-8 text-gray-500">Loading tickets...</div>
             </div>
+        </div>
+
         </div>
     </main>
 
@@ -95,7 +139,8 @@
             <div class="p-6 border-b flex justify-between items-start bg-gray-50 rounded-t-xl">
                 <div>
                     <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">Ticket Title</h2>
-                    <p class="text-sm text-gray-500 mt-1">ID: <span id="modalId">#</span> | Author: <span
+                    <p class="text-sm text-gray-500 mt-1">ID: <span id="modalId">#</span> | Category: <span
+                            id="modalCategory" class="font-medium text-blue-600"></span> | Author: <span
                             id="modalAuthor"></span></p>
                 </div>
                 <button id="closeModal" class="text-gray-400 hover:text-gray-600">
@@ -167,6 +212,13 @@
                             </select>
                         </div>
 
+                        <div class="mb-4 hidden" id="adminScheduleDiv">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Schedule
+                                Handling</label>
+                            <input type="datetime-local" id="modalScheduledFor"
+                                class="w-full border rounded p-2 bg-white text-sm">
+                        </div>
+
                         <button id="updateTicketBtn"
                             class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium">Update
                             Ticket</button>
@@ -176,11 +228,65 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Create Ticket Modal -->
+    <div id="createTicketModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">New Support Ticket</h2>
+                <button onclick="document.getElementById('createTicketModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="createTicketForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <input type="text" id="newTicketTitle" required
+                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select id="newTicketCategory"
+                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="HARDWARE">Hardware</option>
+                        <option value="SOFTWARE">Software</option>
+                        <option value="NETWORK">Network</option>
+                        <option value="ACCESS">Access</option>
+                        <option value="OTHER" selected>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select id="newTicketPriority"
+                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="newTicketDesc" rows="4" required
+                        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition duration-300">Submit
+                    Ticket</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Logic -->
     <script>
         const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/index.html';
+        if (!token) window.location.href = '/login.html';
 
         // Globals
         let allTickets = [];
@@ -204,13 +310,71 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('token');
-            window.location.href = '/index.html';
+            window.location.href = '/login.html';
         });
 
         statusFilter.addEventListener('change', () => { currentPage = 1; fetchTickets(); });
 
         async function initDashboard() {
+            // Check Role
+            const payload = parseJwt(token);
+            if (payload && payload.role === 'ADMIN') {
+                document.getElementById('usersBtn').classList.remove('hidden');
+            }
+
             await fetchTickets();
+        }
+
+        function switchView(view) {
+            if (view === 'tickets') {
+                document.getElementById('ticketsView').classList.remove('hidden');
+                document.getElementById('usersView').classList.add('hidden');
+            } else {
+                document.getElementById('ticketsView').classList.add('hidden');
+                document.getElementById('usersView').classList.remove('hidden');
+                fetchUsers();
+            }
+        }
+
+        async function fetchUsers() {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>';
+
+            try {
+                const res = await fetch('/api/v1/admin/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    tbody.innerHTML = '';
+                    json.data.forEach(u => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b hover:bg-gray-50';
+                        tr.innerHTML = `
+                            <td class="p-4 text-gray-500">#${u.id}</td>
+                            <td class="p-4 font-mono text-xs text-blue-600 font-bold">${u.staffId || '-'}</td>
+                            <td class="p-4 font-medium">${u.name || '-'}</td>
+                            <td class="p-4">${u.email}</td>
+                            <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">${u.role}</span></td>
+                             <td class="p-4 text-sm text-gray-500">${new Date(u.createdAt).toLocaleDateString()}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Error loading users</td></tr>';
+            }
+        }
+
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
         }
 
 
@@ -280,6 +444,7 @@
                 tr.innerHTML = `
                     <td class="p-4 font-mono text-sm text-gray-500">#${t.id}</td>
                     <td class="p-4 font-medium text-gray-800">${t.title}</td>
+                    <td class="p-4 text-sm text-gray-600"><span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${t.category || 'OTHER'}</span></td>
                     <td class="p-4 text-gray-600">${t.author.email}</td>
                     <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${getStatusColor(t.status)}">${t.status}</span></td>
                     <td class="p-4 text-sm text-gray-600">${t.priority}</td>
@@ -320,10 +485,30 @@
                 // Populate Modal
                 document.getElementById('modalTitle').innerText = t.title;
                 document.getElementById('modalId').innerText = t.id;
+                document.getElementById('modalCategory').innerText = t.category || 'OTHER';
                 document.getElementById('modalAuthor').innerText = t.author.name || t.author.email;
                 document.getElementById('modalDescription').innerText = t.description;
                 document.getElementById('modalStatus').value = t.status;
                 document.getElementById('modalPriority').value = t.priority;
+
+                // Scheduling Display
+                const schedDisplay = document.getElementById('modalScheduledDisplay');
+                const schedTime = document.getElementById('modalScheduledTime');
+                const schedInput = document.getElementById('modalScheduledFor');
+
+                if (t.scheduledFor) {
+                    schedDisplay.classList.remove('hidden');
+                    schedTime.innerText = new Date(t.scheduledFor).toLocaleString();
+                    // Set input value (requires YYYY-MM-DDTHH:MM format)
+                    if (schedInput) {
+                        const d = new Date(t.scheduledFor);
+                        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                        schedInput.value = d.toISOString().slice(0, 16);
+                    }
+                } else {
+                    schedDisplay.classList.add('hidden');
+                    if (schedInput) schedInput.value = '';
+                }
 
                 renderComments(t.comments);
 
@@ -403,6 +588,7 @@
 
             const status = document.getElementById('modalStatus').value;
             const priority = document.getElementById('modalPriority').value;
+            const scheduledFor = document.getElementById('modalScheduledFor').value;
 
             try {
                 const res = await fetch(`/api/v1/tickets/${currentTicketId}`, {
@@ -411,7 +597,7 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ status, priority })
+                    body: JSON.stringify({ status, priority, scheduledFor: scheduledFor || null })
                 });
 
                 if (res.ok) {
@@ -423,6 +609,39 @@
                 }
             } catch (error) {
                 console.error(error);
+            }
+        });
+
+        // Create Ticket Logic
+        document.getElementById('createTicketForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('newTicketTitle').value;
+            const description = document.getElementById('newTicketDesc').value;
+            const priority = document.getElementById('newTicketPriority').value;
+            const category = document.getElementById('newTicketCategory').value;
+
+            try {
+                const res = await fetch('/api/v1/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, description, priority, category })
+                });
+
+                if (res.ok) {
+                    alert('Ticket Created Successfully!');
+                    document.getElementById('createTicketModal').classList.add('hidden');
+                    document.getElementById('createTicketForm').reset();
+                    fetchTickets(); // Refresh List
+                } else {
+                    const err = await res.json();
+                    alert('Failed to create ticket: ' + (err.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred');
             }
         });
     </script>

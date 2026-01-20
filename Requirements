@@ -67,3 +67,14 @@ CREATE TRIGGER trg_update_tickets_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+
+
+
+Core Requirements 
+
+'
+
+
+
+
+Create an admin Dashboard Interface a simple web interface for adimins to login with admin credentials and view all tickets, users, and comments. Filter tickets by status, click ticket to view status, update ticket status via dropdown, add comments with option to mark as internal.

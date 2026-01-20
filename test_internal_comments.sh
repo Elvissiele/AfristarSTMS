@@ -3,8 +3,7 @@
 BASE_URL="http://localhost:3000/api/v1"
 
 echo "1. Registering Users (Admin & Customer)..."
-# Create Admin (if not exists, seed might have handled it but let's register a new one or login)
-# We'll rely on the seeded admin: admin@example.com / admin123
+
 # Create Customer
 curl -s -X POST $BASE_URL/auth/register -H "Content-Type: application/json" -d '{"email":"customer_dash@example.com","password":"password123","name":"Dash Customer"}' > /dev/null
 

@@ -2,19 +2,19 @@ import prisma from '../config/prisma.js';
 
 export const createTicket = async (req, res) => {
     try {
-        const { title, description, priority } = req.body;
+        const { title, description, priority, category } = req.body;
         const ticket = await prisma.ticket.create({
             data: {
                 title,
                 description,
                 priority: priority || 'MEDIUM',
+                category: category || 'OTHER',
                 authorId: req.user.id,
             },
         });
 
 
         // Send Email to Admin (Mock Admin Email)
-        // In production, we would fetch all admins or round-robin
         import('../services/emailService.js').then(({ sendEmail }) => {
             sendEmail({
                 to: 'admin@example.com',
@@ -112,17 +112,24 @@ export const getTicketStats = async (req, res) => {
 export const updateTicket = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, assignedToId, priority } = req.body;
+        const { status, assignedToId, priority, category, scheduledFor } = req.body;
 
         // Verify existence
         const ticket = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
         if (!ticket) return res.status(404).json({ status: 'error', message: 'Ticket not found' });
+
+        // RBAC: Only Admin can schedule
+        if (scheduledFor && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ status: 'error', message: 'Only Admins can schedule tickets' });
+        }
 
         const updatedTicket = await prisma.ticket.update({
             where: { id: parseInt(id) },
             data: {
                 status,
                 priority,
+                category,
+                scheduledFor: scheduledFor ? new Date(scheduledFor) : undefined,
                 assignedToId: assignedToId ? parseInt(assignedToId) : undefined,
             },
         });
@@ -210,3 +217,4 @@ export const getTicketDetails = async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Error fetching ticket details' });
     }
 }
+

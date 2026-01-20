@@ -1,0 +1,43 @@
+/* Hide AdminJS footer/links */
+a[href*="adminjs.co"] {
+    display: none !important;
+}
+
+/* Hide the 'Made with Love' text if it has a specific class or container */
+.sc-kLokwi,
+.adminjs_Footer {
+    display: none !important;
+}
+
+/* Custom styles for login page if needed */
+body {
+    background-color: #f3f4f6;
+    /* Light gray match */
+}
+
+/* Fix Login Box container - Generic targeting for robustness */
+.login__Wrapper>div {
+    background-color: #ffffff !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 8px !important;
+    padding: 32px !important;
+    /* Force padding */
+    border: 1px solid #e5e7eb !important;
+    /* Subtle border */
+}
+
+/* Center Logo - Target generic img inside wrapper */
+.login__Wrapper img {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 24px !important;
+}
+
+/* Center Heading/Text */
+.login__Wrapper h2,
+.login__Wrapper h5,
+.login__Wrapper h1 {
+    text-align: center !important;
+    width: 100% !important;
+}

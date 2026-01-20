@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,7 +10,10 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
+  personalEmail String?
+  staffId   String   @unique // e.g. M10256
   password  String
+  isTemporaryPassword Boolean @default(false)
   name      String?
   role      String   @default("CUSTOMER") // CUSTOMER, AGENT, ADMIN
   createdAt DateTime @default(now())
@@ -30,6 +30,8 @@ model Ticket {
   description String
   status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
   priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  category    String   @default("OTHER") // HARDWARE, SOFTWARE, NETWORK, ACCESS, OTHER
+  scheduledFor DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -53,4 +55,13 @@ model Comment {
 
   ticketId  Int
   ticket    Ticket   @relation(fields: [ticketId], references: [id])
+}
+
+model WebsiteContent {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   // Can be text or JSON
+  imageUrl  String?
+  description String?
+  updatedAt DateTime @updatedAt
 }

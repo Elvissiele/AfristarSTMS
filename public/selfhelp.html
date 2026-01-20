@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afristar Self Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 h-screen flex flex-col">
+
+    <!-- Header -->
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center z-10">
+        <div class="flex items-center space-x-2">
+            <img src="/images/logo.jpg" alt="Afristar Logo" class="h-10 object-contain">
+            <span class="text-xl font-bold text-gray-800 tracking-tight">Self Help Portal</span>
+        </div>
+        <a href="/index.html" class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            Back to Home
+        </a>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-grow flex flex-col relative">
+
+        <!-- Selection State -->
+        <div id="selectionState" class="hidden absolute inset-0 flex items-center justify-center z-20">
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Select a Topic</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Help Topic</label>
+                        <select
+                            class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2.5 border"
+                            id="helpitem">
+                            <option value="">Select an option...</option>
+                            <option value="1">1. How to create recovery Account</option>
+                            <option value="2">2. First time login not working</option>
+                            <option value="3">3. How to change my Password</option>
+                            <option value="4">4. I forgot my password / Reset my Account</option>
+                            <option value="5">5. How to change password on login screen</option>
+                            <option value="6">6. Verify my Username</option>
+                            <option value="7">7. How to Create a Signature</option>
+                            <option value="8">8. Service Disruption Bulletin</option>
+                            <option value="9">9. Connect Phone/Desktop by IMAP</option>
+                            <option value="10">10. Workstation Preventive Maintenance</option>
+                            <option value="11">11. Mail Backup</option>
+                            <option value="12">12. Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Staff ID</label>
+                        <input type="text"
+                            class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2.5 border"
+                            id="staffid" placeholder="e.g. M10256" onkeypress="checkEnter(event)">
+                    </div>
+                    <button onclick="submitSearch()"
+                        class="w-full bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+                        View Guide
+                    </button>
+                    <!-- Error Msg -->
+                    <p id="formError" class="text-red-500 text-sm hidden text-center">Please select a topic and enter
+                        your Staff ID.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Viewer State -->
+        <div id="viewerState" class="hidden w-full h-full relative">
+            <div id="loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 z-0">
+                <p class="text-gray-500 animate-pulse">Loading Document...</p>
+            </div>
+
+            <iframe id="docFrame" class="w-full h-full border-0 z-10" src=""></iframe>
+
+            <div id="errorMsg" class="hidden absolute inset-0 flex items-center justify-center bg-white z-20">
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Document Not Found</h2>
+                    <p class="text-gray-600 mb-6">The requested document could not be loaded.</p>
+                    <button onclick="resetState()"
+                        class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">Select Another
+                        Topic</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Document Mapping
+        const docs = {
+            '1': 'https://helpdesk.afristar.ke/recoveryaccount.pdf',
+            '2': null,
+            '3': 'https://helpdesk.afristar.ke/changepassword.pdf',
+            '4': 'https://helpdesk.afristar.ke/recoveryaccount.pdf',
+            '5': 'https://helpdesk.afristar.ke/changesystempassword.png',
+            '6': null,
+            '7': null,
+            '8': null,
+            '9': 'https://helpdesk.afristar.ke/Imap%20Settings%20Outlook.pdf',
+            '10': 'https://helpdesk.afristar.ke/Imap%20Settings%20Desktop%20Win10.pdf',
+            '11': 'https://helpdesk.afristar.ke/MailBackup.pdf',
+            '12': null
+        };
+
+        // DOM Elements
+        const selectionState = document.getElementById('selectionState');
+        const viewerState = document.getElementById('viewerState');
+        const frame = document.getElementById('docFrame');
+        const errorDiv = document.getElementById('errorMsg');
+        const loadingDiv = document.getElementById('loading');
+        const formError = document.getElementById('formError');
+
+        // Logic
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            const docId = params.get('doc');
+            const staffId = params.get('staffId');
+
+            if (docId && staffId) {
+                showViewer(docId, staffId);
+            } else {
+                showSelection();
+            }
+        }
+
+        function showSelection() {
+            selectionState.classList.remove('hidden');
+            viewerState.classList.add('hidden');
+        }
+
+        function showViewer(docId, staffId) {
+            selectionState.classList.add('hidden');
+            viewerState.classList.remove('hidden');
+
+            if (docs[docId]) {
+                frame.src = docs[docId];
+                frame.onload = () => { loadingDiv.style.display = 'none'; };
+            } else {
+                loadingDiv.style.display = 'none';
+                if (docs.hasOwnProperty(docId)) {
+                    errorDiv.querySelector('h2').innerText = 'Coming Soon';
+                    errorDiv.querySelector('p').innerText = 'This guide is currently being updated.';
+                }
+                errorDiv.classList.remove('hidden');
+                frame.classList.add('hidden');
+            }
+            console.log(`User ${staffId} viewing ${docId}`);
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') submitSearch();
+        }
+
+        function submitSearch() {
+            const staffId = document.getElementById('staffid').value;
+            const helpItem = document.getElementById('helpitem').value;
+
+            if (staffId && helpItem) {
+                // Update URL without reloading if possible, or just reload
+                window.location.href = `?doc=${helpItem}&staffId=${staffId}`;
+            } else {
+                formError.classList.remove('hidden');
+            }
+        }
+
+        function resetState() {
+            window.location.href = '/selfhelp.html';
+        }
+
+        // Run
+        init();
+    </script>
+</body>
+
+</html>
