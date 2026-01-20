@@ -11,3 +11,4 @@ dev.db-journal
 
 server.log
 server.pid
+node_modules

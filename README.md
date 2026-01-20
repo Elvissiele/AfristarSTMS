@@ -1,17 +1,37 @@
-# Support Ticket Management System
+# Support Ticket Management System (Afristar ICT)
 
-A robust, full-stack solution for managing customer support tickets, featuring a secure REST API and a custom admin dashboard.
+A robust, full-stack solution for managing customer support tickets, featuring a secure REST API and a custom admin dashboard empowered by AdminJS.
+
+## Key Features
+
+### 🔐 Enhanced Security & Authentication
+*   **Role-Based Access Control (RBAC)**: Distinct access levels for Customers, Agents, and Admins.
+*   **Secure User Onboarding**: 
+    *   No public registration (Admin-only creation).
+    *   **Auto-generated secure passwords** emailed to users.
+    *   **Forced Password Reset**: Users must change their temporary password on first login.
+*   **JWT Authentication**: Stateless and scalable.
+
+### 🛠️ Admin Dashboard (AdminJS)
+*   Manage Users, Tickets, and Comments with a GUI.
+*   **User Management**: create staff accounts with auto-email notifications.
+*   **Content Management**: Update dynamic website content (e.g., sustainability page text) directly from the admin panel.
+
+### 🎫 Ticket Management
+*   Complete lifecycle management (Open -> In Progress -> Resolved -> Closed).
+*   Priority and Status tracking.
+*   Internal notes for agents (hidden from customers).
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js (v18+)
-- PostgreSQL (or Docker to run it)
+-   Node.js (v18+)
+-   PostgreSQL (Running locally or via Docker)
 
 ### Local Setup
 1.  **Clone & Install**
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/Elvissiele/AfristarSTMS.git
     cd Support\ Ticket\ Management\ System
     npm install
     ```
@@ -20,68 +40,49 @@ A robust, full-stack solution for managing customer support tickets, featuring a
     Create a `.env` file in the root directory:
     ```env
     PORT=3000
-    DATABASE_URL="postgresql://user:password@localhost:5432/stms_db"
-    JWT_SECRET="super_secret_key_change_me"
-    # Optional: SMTP for Real Emails (Defaults to Ethereal Mock)
+    DATABASE_URL="postgresql://user:password@localhost:5432/stms_db?schema=public"
+    JWT_SECRET="your_super_secret_key"
+    # Optional: Real SMTP credentials (uses Ethereal Mock by default)
     # SMTP_HOST=smtp.gmail.com ...
     ```
 
-3.  **Database Migration & Seeding**
+3.  **Database Migration**
     ```bash
     npx prisma migrate dev --name init
-    node prisma/seed.js
+    # Seed default data (optional, check package.json if seed script exists)
+    # node prisma/seed.js 
     ```
-    *Seed Admin*: `john@example.com` / `SecurePass123`
 
-4.  **Run**
+4.  **Run Application**
     ```bash
     npm start
     ```
-    Visit `http://localhost:3000` to log in.
+    *   **Admin Panel**: `http://localhost:3000/admin`
+    *   **Staff/User Portal**: `http://localhost:3000/login.html`
 
-### Docker Setup
+### Default Admin Scenarios
+If seeding was run or you have an existing DB:
+*   **Admin Login**: Use your admin **Email** (e.g., `admin@example.com`).
+*   **Staff Login**: Use your **Staff ID** (e.g., `M1001`).
+
+## Tech Stack
+
+### **Backend**
+*   **Node.js + Express**: Scalable API server.
+*   **Prisma ORM**: Type-safe database interactions.
+*   **PostgreSQL**: Reliable relational database.
+*   **AdminJS**: Auto-generated admin interface.
+
+### **Frontend**
+*   **Vanilla JS + TailwindCSS**: Lightweight, fast client-side dashboard without build-step complexity.
+
+## Deployment Using Docker
 ```bash
 docker build -t stms-app .
 docker run -p 3000:3000 --env-file .env stms-app
 ```
 
----
-
-## Tech Stack & Key Decisions
-
-### **Backend: Node.js + Express**
-*   **Why**: Industry standard for building scalable, non-blocking APIs.
-*   **Alternatives**: Python/Flask (slower for high concurrency), Go (higher dev learning curve).
-
-### **Database: PostgreSQL + Prisma**
-*   **Why**: Postgres is the most reliable open-source relational database. Prisma provides type safety and simplifies complex joins (e.g., getting a ticket with its author and comments).
-*   **Trade-off**: Requires a running DB instance (unlike SQLite), making local setup slightly heavier but production-ready.
-
-### **Frontend: Vanilla JS + TailwindCSS**
-*   **Why**: Prioritized **simplicity and speed**. Avoided the build-step complexity of React/Next.js to focus on the core logic and backend robustness.
-*   **Trade-off**: As the dashboard grows, manual DOM manipulation (e.g., `document.createElement`) becomes hard to maintain.
-
-### **Authentication: JWT (JSON Web Tokens)**
-*   **Why**: Stateless authentication scales better than sessions for REST APIs and mobile clients.
-
----
-
-## Trade-offs & Priorities
-
-### What I Prioritized
-1.  **Security (RBAC)**: Ensuring Customers can't see internal notes or other users' tickets was a P0 requirement.
-2.  **API Design**: Built a clean, RESTful structure (`/api/v1/resources`) that can support any future frontend (Mobile App, React Dashboard).
-3.  **Deployment Readiness**: Switched from SQLite to Postgres and added Docker to ensure the app is not just a "localhost only" demo.
-
-### What is Missing (Trade-offs)
-1.  **Backend Validation**: Currently manual checks. Ideally, I would use `zod` or `joi` for strict request body validation.
-2.  **Frontend Framework**: A framework like React would make the dashboard state management (e.g., updating the ticket list after a comment) much smoother.
-3.  **Real Email Service**: Currently uses Ethereal (Mock). Creating a real SendGrid/AWS SES account was out of scope.
-4.  **Automated Tests**: Added basic shell scripts, but a full Jest/Supertest suite is needed for production confidence.
-
 ## Future Improvements
-If I had more time, I would:
-1.  **Migrate Frontend to Next.js**: For better routing, server-side rendering, and cleaner component code.
-2.  **Add Real-time Features**: Use `Socket.io` to update the dashboard instantly when a new ticket arrives.
-3.  **Unit & Integration Tests**: Replace the `.sh` scripts with a proper CI/CD test pipeline.
-4.  **File Attachments**: Allow users to upload screenshots with their tickets (using AWS S3 or local storage).
+1.  **Migrate Frontend to Next.js**: For clearer component architecture.
+2.  **Real-Time Updates**: Check `Socket.io` for live ticket updates.
+3.  **File Attachments**: AWS S3 integration for ticket screenshots.
