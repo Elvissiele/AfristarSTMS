@@ -1,26 +1,34 @@
-# Support Ticket Management System (Afristar ICT)
+# Afristar ICT Helpdesk & Corporate Website
 
-A robust, full-stack solution for managing customer support tickets, featuring a secure REST API and a custom admin dashboard empowered by AdminJS.
+A comprehensive digital solution for **Africa Star Railway Operation Company (Afristar)**, developed by **Spyder ICT Systems Kenya**. This project integrates a robust internal Helpdesk System with a modern, responsive Corporate Website.
 
-## Key Features
+## 🌍 About Afristar
+**Africa Star Railway Operation Company Limited** is responsible for the operation and maintenance of the Standard Gauge Railway (SGR), "Connecting Nations, Prospering People."
 
-### 🔐 Enhanced Security & Authentication
-*   **Role-Based Access Control (RBAC)**: Distinct access levels for Customers, Agents, and Admins.
-*   **Secure User Onboarding**: 
-    *   No public registration (Admin-only creation).
-    *   **Auto-generated secure passwords** emailed to users.
-    *   **Forced Password Reset**: Users must change their temporary password on first login.
-*   **JWT Authentication**: Stateless and scalable.
+## 🚀 System Components
 
-### 🛠️ Admin Dashboard (AdminJS)
-*   Manage Users, Tickets, and Comments with a GUI.
-*   **User Management**: create staff accounts with auto-email notifications.
-*   **Content Management**: Update dynamic website content (e.g., sustainability page text) directly from the admin panel.
+### 1. Internal Helpdesk Portal
+A secure platform for Afristar staff to manage IT support requests.
+*   **URL**: `http://localhost:3000/login.html`
+*   **Key Features**:
+    *   **RBAC**: Role-Based Access (Admin, Agent, Customer).
+    *   **Secure Onboarding**: Admin-only user creation with auto-generated passwords sent via email.
+    *   **Ticket Lifecycle**: Full tracking from open to closed.
 
-### 🎫 Ticket Management
-*   Complete lifecycle management (Open -> In Progress -> Resolved -> Closed).
-*   Priority and Status tracking.
-*   Internal notes for agents (hidden from customers).
+### 2. Corporate Website
+The public face of Afristar, featuring services, sustainability efforts, and news.
+*   **URL**: `http://localhost:3000/website/index.html`
+*   **Key Features**:
+    *   Modern, responsive design with TailwindCSS.
+    *   Dynamic content management via the Admin Dashboard.
+    *   Video background hero section.
+
+## 🛠️ Admin Dashboard (AdminJS)
+*   **URL**: `http://localhost:3000/admin`
+*   **Capabilities**:
+    *   Manage **Users** (Staff) & **Tickets**.
+    *   Update **Website Content** (dynamically change text on the public site).
+
 
 ## Quick Start
 
